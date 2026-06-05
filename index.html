@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProductHub — DummyJSON CRUD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-icon">🛒</div>
+      <div>
+        <span class="nav-title">ProductHub</span>
+        <span class="nav-sub">DummyJSON CRUD Demo</span>
+      </div>
+    </div>
+    <div class="nav-pills">
+      <span class="pill pill-post">POST</span>
+      <span class="pill pill-put">PUT</span>
+      <span class="pill pill-delete">DELETE</span>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ── HERO ──────────────────────────────────────────────────────── -->
+  <div class="hero">
+    <h1>Product <span>Manager</span></h1>
+    <p>
+      Simulasi CRUD menggunakan
+      <a href="https://dummyjson.com" target="_blank">DummyJSON API</a>
+      &mdash; POST &middot; PUT &middot; DELETE
+    </p>
+  </div>
+
+  <!-- ── STATS ─────────────────────────────────────────────────────── -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card">
+      <span class="stat-icon">🛍️</span>
+      <div>
+        <div class="stat-label">Total Produk</div>
+        <div class="stat-value" id="stat-count">0</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">💵</span>
+      <div>
+        <div class="stat-label">Rata-rata Harga</div>
+        <div class="stat-value" id="stat-avg">$0.00</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">📈</span>
+      <div>
+        <div class="stat-label">Harga Tertinggi</div>
+        <div class="stat-value" id="stat-max">$0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ERROR BANNER ───────────────────────────────────────────────── -->
+  <div class="error-banner" id="error-banner">
+    <span>⚠️</span>
+    <div id="error-text" style="flex:1"></div>
+    <button class="error-close" onclick="closeError()">✕</button>
+  </div>
+
+  <!-- ── FORM ───────────────────────────────────────────────────────── -->
+  <div class="form-card" id="form-card">
+    <div class="form-header">
+      <div class="form-header-left">
+        <div class="form-avatar add" id="form-avatar">+</div>
+        <div>
+          <div class="form-title" id="form-title">Tambah Produk</div>
+          <div class="form-sub" id="form-sub">Isi form lalu kirim ke API</div>
+        </div>
+      </div>
+      <div class="form-header-right">
+        <span class="pill pill-post" id="form-method-pill">POST</span>
+        <button class="btn-close" id="btn-cancel-edit" onclick="cancelEdit()" style="display:none">✕</button>
+      </div>
+    </div>
+
+    <form id="product-form" onsubmit="handleFormSubmit(event)">
+      <input type="hidden" id="editing-id" value="" />
+      <div class="form-grid">
+        <div>
+          <label class="field-label" for="input-title">Nama Produk <span class="req">*</span></label>
+          <input type="text" id="input-title" placeholder="Contoh: iPhone 15 Pro Max" required />
+        </div>
+        <div>
+          <label class="field-label" for="input-price">Harga (USD) <span class="req">*</span></label>
+          <div class="field-wrap">
+            <span class="field-prefix">$</span>
+            <input type="number" id="input-price" class="with-prefix" placeholder="0.00" step="0.01" min="0" required />
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom:0">
+        <label class="field-label" for="input-desc">Deskripsi</label>
+        <textarea id="input-desc" placeholder="Deskripsi singkat produk (opsional)"></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="btn-submit">
+          <div class="spinner" id="submit-spinner"></div>
+          <span id="btn-submit-text">Tambah Produk</span>
+        </button>
+        <button type="button" class="btn btn-ghost" id="btn-cancel-edit2" onclick="cancelEdit()" style="display:none">Batal</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── PRODUCT LIST ───────────────────────────────────────────────── -->
+  <div class="section-header">
+    <h2>Daftar Produk</h2>
+    <span class="count-badge" id="count-badge">0 produk</span>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" id="loading-state">
+    <div class="loading-ring"></div>
+    <p>Mengambil data dari API…</p>
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state" id="empty-state" style="display:none">
+    <div class="empty-icon">📦</div>
+    <p>Belum ada produk</p>
+    <small>Gunakan form di atas untuk menambah produk baru.</small>
+  </div>
+
+  <!-- Grid -->
+  <div class="product-grid" id="product-grid"></div>
+
+  <!-- ── REQUEST LOG ─────────────────────────────────────────────────── -->
+  <div class="log-section hidden" id="log-section">
+    <div class="log-head">▶ Request Log</div>
+    <div class="log-list" id="log-list"></div>
+  </div>
+
+</main>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+<footer>
+  ⚠️ DummyJSON adalah mock API — perubahan tidak tersimpan permanen.<br/>
+  Fokus penilaian: logika <code>async/await</code>, <code>try/catch</code>, dan manipulasi DOM.
+</footer>
+
+<!-- ── TOAST ───────────────────────────────────────────────────────────── -->
+<div id="toast" style="display:none"></div>
+
+<!-- ── PENGATURAN & RENDER UTAMA ───────────────────────────────────────── -->
+<script src="app.js?v=2"></script>
+
+<!-- ── LOGIKA API (CRUD) ───────────────────────────────────────────────── -->
+<script src="js/api/get.js?v=2"></script>
+<script src="js/api/post.js?v=2"></script>
+<script src="js/api/put.js?v=2"></script>
+<script src="js/api/delete.js?v=2"></script>
+</body>
+</html>
